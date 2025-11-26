@@ -18,7 +18,6 @@
 		29B637A82ED6F265000FA498 /* Exceptions for "TestFeedOfPostApp" folder in "TestFeedOfPostApp" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				PostsModel.xcdatamodeld,
 				Resources/Info.plist,
 			);
 			target = 29B637922ED6F263000FA498 /* TestFeedOfPostApp */;
