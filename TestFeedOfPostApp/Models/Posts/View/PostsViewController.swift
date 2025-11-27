@@ -168,7 +168,16 @@ extension PostsViewController: UITableViewDataSource, UITableViewDelegate {
 
         guard let post = viewModel.post(at: indexPath.row) else { return }
 
-        let detailVC = DetailPostViewController(post: post)
+        guard let cell = tableView.cellForRow(at: indexPath) as? PostTableViewCell else { return }
+
+        let likesCount = cell.getLikesCount()
+        let commentsCount = cell.getCommentsCount()
+
+        let detailVC = DetailPostViewController(
+            post: post,
+            likesCount: likesCount,
+            commentsCount: commentsCount
+        )
         navigationController?.pushViewController(detailVC, animated: true)
     }
 

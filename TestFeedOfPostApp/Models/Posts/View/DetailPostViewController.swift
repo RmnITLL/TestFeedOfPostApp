@@ -8,6 +8,8 @@ import UIKit
 class DetailPostViewController: UIViewController {
 
     private let post: PostEntity
+    private let likesCount: Int
+    private let commentsCount: Int
 
     private let scrollView: UIScrollView = {
         let scrollView = UIScrollView()
@@ -88,7 +90,6 @@ class DetailPostViewController: UIViewController {
     private let likeButton: UIButton = {
         let button = UIButton(type: .system)
         button.setImage(UIImage(systemName: "heart"), for: .normal)
-        button.setTitle(" 256", for: .normal)
         button.tintColor = UIColor(red: 0.65, green: 0.66, blue: 0.70, alpha: 1.0)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .medium)
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -98,15 +99,16 @@ class DetailPostViewController: UIViewController {
     private let commentButton: UIButton = {
         let button = UIButton(type: .system)
         button.setImage(UIImage(systemName: "message"), for: .normal)
-        button.setTitle(" 43", for: .normal)
         button.tintColor = UIColor(red: 0.65, green: 0.66, blue: 0.70, alpha: 1.0)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .medium)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
 
-    init(post: PostEntity) {
+    init(post: PostEntity, likesCount: Int, commentsCount: Int) {
         self.post = post
+        self.likesCount = likesCount
+        self.commentsCount = commentsCount
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -122,11 +124,12 @@ class DetailPostViewController: UIViewController {
 
     private func setupUI() {
         view.backgroundColor = UIColor(red: 0.95, green: 0.95, blue: 0.97, alpha: 1.0)
-        title = "Post"
+        title = "TestFeedOfPostApp"
 
         setupNavigationBar()
         setupScrollView()
         setupConstraints()
+        setupButtonActions()
     }
 
     private func setupNavigationBar() {
@@ -170,7 +173,6 @@ class DetailPostViewController: UIViewController {
 
     private func setupConstraints() {
         NSLayoutConstraint.activate([
-
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
@@ -217,6 +219,11 @@ class DetailPostViewController: UIViewController {
         ])
     }
 
+    private func setupButtonActions() {
+        likeButton.addTarget(self, action: #selector(likeButtonTapped), for: .touchUpInside)
+        commentButton.addTarget(self, action: #selector(commentButtonTapped), for: .touchUpInside)
+    }
+
     private func configureWithPost() {
         titleLabel.text = post.title
         bodyLabel.text = post.body
@@ -228,10 +235,12 @@ class DetailPostViewController: UIViewController {
         dateFormatter.timeStyle = .none
         postInfoLabel.text = "Posted on \(dateFormatter.string(from: Date()))"
 
+        likeButton.setTitle(" \(likesCount)", for: .normal)
+        commentButton.setTitle(" \(commentsCount)", for: .normal)
+
         if let avatarURLString = post.avatarURL, let avatarURL = URL(string: avatarURLString) {
             loadImage(from: avatarURL)
         } else {
-
             let defaultAvatarURL = URL(string: "https://i.pravatar.cc/150?img=\(post.userId)")!
             loadImage(from: defaultAvatarURL)
         }
@@ -256,5 +265,24 @@ class DetailPostViewController: UIViewController {
     @objc private func closeButtonTapped() {
         dismiss(animated: true)
     }
-}
 
+    @objc private func likeButtonTapped() {
+        UIView.animate(withDuration: 0.1, animations: {
+            self.likeButton.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
+        }) { _ in
+            UIView.animate(withDuration: 0.1) {
+                self.likeButton.transform = CGAffineTransform.identity
+            }
+        }
+    }
+
+    @objc private func commentButtonTapped() {
+        UIView.animate(withDuration: 0.1, animations: {
+            self.commentButton.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
+        }) { _ in
+            UIView.animate(withDuration: 0.1) {
+                self.commentButton.transform = CGAffineTransform.identity
+            }
+        }
+    }
+}

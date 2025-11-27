@@ -169,6 +169,16 @@ class PostTableViewCell: UITableViewCell {
         ])
     }
 
+    func getLikesCount() -> Int {
+        guard let title = likeButton.title(for: .normal) else { return 0 }
+        return Int(title.trimmingCharacters(in: .whitespaces)) ?? 0
+    }
+
+    func getCommentsCount() -> Int {
+        guard let title = commentButton.title(for: .normal) else { return 0 }
+        return Int(title.trimmingCharacters(in: .whitespaces)) ?? 0
+    }
+
     private func setupSelectionStyle() {
         selectionStyle = .none
 
@@ -176,6 +186,12 @@ class PostTableViewCell: UITableViewCell {
         selectedView.backgroundColor = UIColor(red: 0.35, green: 0.78, blue: 0.98, alpha: 0.1)
         selectedView.layer.cornerRadius = 16
         selectedBackgroundView = selectedView
+    }
+
+    private func generateCounts(for post: PostEntity) -> (likes: Int, comments: Int) {
+        let likesCount = (Int(post.id) * 13) % 500 + 50
+        let commentsCount = (Int(post.id) * 17) % 100 + 10
+        return (likesCount, commentsCount)
     }
 
     func configure(with post: PostEntity) {
@@ -188,18 +204,16 @@ class PostTableViewCell: UITableViewCell {
         dateFormatter.timeStyle = .none
         postInfoLabel.text = "Posted on \(dateFormatter.string(from: Date()))"
 
+        let counts = generateCounts(for: post)
+        likeButton.setTitle(" \(counts.likes)", for: .normal)
+        commentButton.setTitle(" \(counts.comments)", for: .normal)
+
         if let avatarURLString = post.avatarURL, let avatarURL = URL(string: avatarURLString) {
             loadImage(from: avatarURL)
         } else {
-
             let defaultAvatarURL = URL(string: "https://i.pravatar.cc/150?img=\(post.userId)")!
             loadImage(from: defaultAvatarURL)
         }
-
-        let randomLikes = Int.random(in: 1...100)
-        let randomComments = Int.random(in: 1...100)
-        likeButton.setTitle(" \(randomLikes)", for: .normal)
-        commentButton.setTitle(" \(randomComments)", for: .normal)
     }
 
     private func loadImage(from url: URL) {
