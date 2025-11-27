@@ -6,7 +6,16 @@
 import UIKit
 
 class PostsViewController: UIViewController {
-    private let tableView = UITableView()
+
+    private let tableView: UITableView = {
+        let tableView = UITableView()
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        tableView.backgroundColor = UIColor(red: 0.95, green: 0.95, blue: 0.97, alpha: 1.0)
+        tableView.separatorStyle = .none
+        tableView.showsVerticalScrollIndicator = false
+        return tableView
+    }()
+
     private let refreshControl = UIRefreshControl()
     private let viewModel = PostsViewModel()
     private let activityIndicator = UIActivityIndicatorView(style: .large)
@@ -20,24 +29,52 @@ class PostsViewController: UIViewController {
         loadData()
     }
 
-    private func setupUI() {
-        title = "TestFeedOfPostApp"
-        view.backgroundColor = .white
-        setupTableView()
-        setupActivityIndicator()
-        setupTableViewFooter()
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
         setupNavigationBar()
     }
 
+    private func setupUI() {
+        view.backgroundColor = UIColor(red: 0.95, green: 0.95, blue: 0.97, alpha: 1.0)
+        title = "TestFeedOfPostApp"
+
+        setupTableView()
+        setupActivityIndicator()
+        setupTableViewFooter()
+        setupRefreshControl()
+    }
+
+    private func setupNavigationBar() {
+        navigationController?.navigationBar.prefersLargeTitles = true
+
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = UIColor(red: 0.95, green: 0.95, blue: 0.97, alpha: 1.0)
+        appearance.titleTextAttributes = [
+            .foregroundColor: UIColor(red: 0.16, green: 0.17, blue: 0.22, alpha: 1.0),
+            .font: UIFont.systemFont(ofSize: 18, weight: .bold)
+        ]
+        appearance.largeTitleTextAttributes = [
+            .foregroundColor: UIColor(red: 0.16, green: 0.17, blue: 0.22, alpha: 1.0),
+            .font: UIFont.systemFont(ofSize: 34, weight: .bold)
+        ]
+        appearance.shadowColor = .clear
+
+        navigationController?.navigationBar.standardAppearance = appearance
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        navigationController?.navigationBar.compactAppearance = appearance
+
+        navigationController?.navigationBar.tintColor = UIColor(red: 0.35, green: 0.78, blue: 0.98, alpha: 1.0)
+    }
+
     private func setupTableView() {
-        tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.register(PostTableViewCell.self, forCellReuseIdentifier: AppConstants.CellIdentifiers.postCell)
         tableView.dataSource = self
         tableView.delegate = self
         tableView.rowHeight = UITableView.automaticDimension
-        tableView.estimatedRowHeight = 120
+        tableView.estimatedRowHeight = 200
         tableView.refreshControl = refreshControl
-        refreshControl.addTarget(self, action: #selector(refreshData), for: .valueChanged)
+
         view.addSubview(tableView)
 
         NSLayoutConstraint.activate([
@@ -48,9 +85,15 @@ class PostsViewController: UIViewController {
         ])
     }
 
+    private func setupRefreshControl() {
+        refreshControl.tintColor = UIColor(red: 0.35, green: 0.78, blue: 0.98, alpha: 1.0)
+        refreshControl.addTarget(self, action: #selector(refreshData), for: .valueChanged)
+    }
+
     private func setupActivityIndicator() {
         activityIndicator.translatesAutoresizingMaskIntoConstraints = false
         activityIndicator.hidesWhenStopped = true
+        activityIndicator.color = UIColor(red: 0.35, green: 0.78, blue: 0.98, alpha: 1.0)
         view.addSubview(activityIndicator)
 
         NSLayoutConstraint.activate([
@@ -60,18 +103,18 @@ class PostsViewController: UIViewController {
     }
 
     private func setupTableViewFooter() {
-        let footerView = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.width, height: 60))
+        let footerView = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.width, height: 80))
+        footerView.backgroundColor = .clear
 
-            // Настройка индикатора загрузки
         loadMoreIndicator.translatesAutoresizingMaskIntoConstraints = false
+        loadMoreIndicator.color = UIColor(red: 0.35, green: 0.78, blue: 0.98, alpha: 1.0)
         footerView.addSubview(loadMoreIndicator)
 
-            // Настройка label для сообщения о конце списка
         noMorePostsLabel.translatesAutoresizingMaskIntoConstraints = false
-        noMorePostsLabel.text = "Больше новостей нет"
-        noMorePostsLabel.textColor = .gray
+        noMorePostsLabel.text = "Больше постов нет"
+        noMorePostsLabel.textColor = UIColor(red: 0.65, green: 0.66, blue: 0.70, alpha: 1.0)
         noMorePostsLabel.textAlignment = .center
-        noMorePostsLabel.font = UIFont.systemFont(ofSize: 14)
+        noMorePostsLabel.font = UIFont.systemFont(ofSize: 14, weight: .medium)
         noMorePostsLabel.isHidden = true
         footerView.addSubview(noMorePostsLabel)
 
@@ -89,10 +132,6 @@ class PostsViewController: UIViewController {
         loadMoreIndicator.hidesWhenStopped = true
     }
 
-    private func setupNavigationBar() {
-        navigationController?.navigationBar.prefersLargeTitles = true
-    }
-
     private func setupViewModel() {
         viewModel.delegate = self
     }
@@ -104,16 +143,6 @@ class PostsViewController: UIViewController {
 
     @objc private func refreshData() {
         viewModel.refreshPosts()
-    }
-
-    private func showEndOfPostsAlert() {
-        let alert = UIAlertController(
-            title: "Больше новостей нет",
-            message: "Вы просмотрели все доступные посты",
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
     }
 }
 
@@ -134,16 +163,42 @@ extension PostsViewController: UITableViewDataSource, UITableViewDelegate {
         return cell
     }
 
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+
+        guard let post = viewModel.post(at: indexPath.row) else { return }
+
+        guard let cell = tableView.cellForRow(at: indexPath) as? PostTableViewCell else { return }
+
+        let likesCount = cell.getLikesCount()
+        let commentsCount = cell.getCommentsCount()
+
+        let detailVC = DetailPostViewController(
+            post: post,
+            likesCount: likesCount,
+            commentsCount: commentsCount
+        )
+        navigationController?.pushViewController(detailVC, animated: true)
+    }
+
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-            // Загружаем следующую страницу когда пользователь доскроллил до последних 3 ячеек
         let lastRowIndex = viewModel.numberOfPosts - 1
         if indexPath.row >= lastRowIndex - 2 {
             loadMoreIndicator.startAnimating()
             viewModel.loadNextPage()
         }
     }
-}
 
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return 16
+    }
+
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        let headerView = UIView()
+        headerView.backgroundColor = .clear
+        return headerView
+    }
+}
 
 extension PostsViewController: PostsViewModelDelegate {
     func postsDidUpdate() {
@@ -160,7 +215,10 @@ extension PostsViewController: PostsViewModelDelegate {
             self.refreshControl.endRefreshing()
             self.activityIndicator.stopAnimating()
             self.loadMoreIndicator.stopAnimating()
-            self.showError(error)
+
+            if self.viewModel.numberOfPosts == 0 {
+                self.showError(error)
+            }
         }
     }
 
@@ -173,7 +231,21 @@ extension PostsViewController: PostsViewModelDelegate {
     }
 
     private func showError(_ message: String) {
-        let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
+        let alert = UIAlertController(
+            title: "Error",
+            message: message,
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
+
+    private func showEndOfPostsAlert() {
+        let alert = UIAlertController(
+            title: "Больше постов нет",
+            message: "Вы просмотрели все доступные посты",
+            preferredStyle: .alert
+        )
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
     }
