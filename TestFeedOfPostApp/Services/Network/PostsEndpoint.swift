@@ -6,7 +6,7 @@
 import Alamofire
 
 enum PostsEndpoint {
-    case fetchPosts
+    case fetchPosts(page: Int)
     case fetchPost(id: Int)
 }
 
@@ -30,8 +30,10 @@ extension PostsEndpoint: Endpoint {
 
     var parameters: Parameters? {
         switch self {
-        case .fetchPosts, .fetchPost:
-            return nil  
+        case .fetchPosts(let page):
+            return ["_page": page, "_limit": 20] // 20 постов на страницу
+        case .fetchPost:
+            return nil
         }
     }
 
@@ -39,3 +41,4 @@ extension PostsEndpoint: Endpoint {
         return ["Content-Type": "application/json"]
     }
 }
+
