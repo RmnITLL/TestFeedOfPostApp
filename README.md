@@ -10,9 +10,6 @@
 <img width="151" height="328" alt="Simulator Screenshot - iPhone 17 Pro - 2025-11-27 at 17 46 38" src="https://github.com/user-attachments/assets/258fe1ea-8ec1-4fde-a0b7-fce314634668" />
 </p> 
 
-### Архитектура:
-
-Приложение построено по архитектуре MVVM (Model-View-ViewModel).
 
 ### Использованные технологии:
 
