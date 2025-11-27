@@ -7,9 +7,7 @@ import CoreData
 
 class CoreDataManager {
     static let shared = CoreDataManager()
-
     private init() {}
-
 
     private let modelName = "PostsModel"
 
@@ -17,7 +15,7 @@ class CoreDataManager {
         let container = NSPersistentContainer(name: modelName)
         container.loadPersistentStores { description, error in
             if let error = error as NSError? {
-                fatalError("Unresolved error \(error), \(error.userInfo)")
+                print("Unresolved error \(error), \(error.userInfo)")
             }
         }
         return container
@@ -34,38 +32,36 @@ class CoreDataManager {
                 try context.save()
             } catch {
                 let nserror = error as NSError
-                fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
+                print("Unresolved error \(nserror), \(nserror.userInfo)")
             }
         }
     }
 
-
     func savePosts(_ posts: [Post]) {
         let context = persistentContainer.viewContext
 
-        context.perform {
+            // Используем performAndWait для синхронного выполнения
+        context.performAndWait {
             for post in posts {
-                    
                 let fetchRequest: NSFetchRequest<PostEntity> = PostEntity.fetchRequest()
                 fetchRequest.predicate = NSPredicate(format: "id == %d", post.id)
 
-                let postEntity: PostEntity
-
                 do {
                     let existingPosts = try context.fetch(fetchRequest)
+                    let postEntity: PostEntity
+
                     if let existingPost = existingPosts.first {
                         postEntity = existingPost
                     } else {
-
                         postEntity = PostEntity(context: context)
                     }
 
-
                     let avatarURL = "https://i.pravatar.cc/150?img=\(post.userId)"
+
                     postEntity.userId = Int32(post.userId)
                     postEntity.id = Int32(post.id)
-                    postEntity.title = post.title
-                    postEntity.body = post.body
+                    postEntity.title = post.title ?? ""
+                    postEntity.body = post.body ?? ""
                     postEntity.avatarURL = avatarURL
 
                 } catch {
@@ -74,15 +70,12 @@ class CoreDataManager {
                 }
             }
 
-
             self.saveContext()
         }
     }
 
-
     func fetchPosts() -> [PostEntity] {
         let context = persistentContainer.viewContext
-
 
         let fetchRequest = NSFetchRequest<PostEntity>(entityName: "PostEntity")
         let sortDescriptor = NSSortDescriptor(key: "id", ascending: true)
@@ -96,20 +89,20 @@ class CoreDataManager {
         }
     }
 
-
     func deleteAllPosts() {
         let context = persistentContainer.viewContext
-        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = PostEntity.fetchRequest()
-        let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
 
-        do {
-            try context.execute(deleteRequest)
-            saveContext()
-        } catch {
-            print("Failed to delete posts: \(error)")
+            // Используем performAndWait для синхронного выполнения
+        context.performAndWait {
+            let fetchRequest: NSFetchRequest<NSFetchRequestResult> = PostEntity.fetchRequest()
+            let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+
+            do {
+                try context.execute(deleteRequest)
+                saveContext()
+            } catch {
+                print("Failed to delete posts: \(error)")
+            }
         }
     }
 }
-
-
-

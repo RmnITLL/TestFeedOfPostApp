@@ -8,10 +8,12 @@ import Alamofire
 import Foundation
 
 protocol NetworkServiceProtocol {
-    func fetchPosts(completion: @escaping (Result<[Post], Error>) -> Void)
-    func fetchPost(id: Int, completion: @escaping (Result<Post, Error>) -> Void)
+    func fetchPosts(page: Int, completion: @escaping (Result<[Post], Error>) -> Void)
     func request<T: Decodable>(_ endpoint: Endpoint, completion: @escaping (Result<T, Error>) -> Void)
 }
+
+    // NetworkService.swift
+    // reafctoring name
 
 class NetworkService: NetworkServiceProtocol {
     static let shared = NetworkService()
@@ -23,6 +25,10 @@ class NetworkService: NetworkServiceProtocol {
         session = Session(configuration: configuration)
     }
 
+    func fetchPosts(page: Int, completion: @escaping (Result<[Post], Error>) -> Void) {
+        let endpoint = PostsEndpoint.fetchPosts(page: page)
+        request(endpoint, completion: completion)
+    }
 
     func request<T: Decodable>(_ endpoint: Endpoint, completion: @escaping (Result<T, Error>) -> Void) {
         let url = endpoint.baseURL + endpoint.path
@@ -40,16 +46,5 @@ class NetworkService: NetworkServiceProtocol {
                 completion(.failure(error))
             }
         }
-    }
-
-
-    func fetchPosts(completion: @escaping (Result<[Post], Error>) -> Void) {
-        let endpoint = PostsEndpoint.fetchPosts
-        request(endpoint, completion: completion)
-    }
-
-    func fetchPost(id: Int, completion: @escaping (Result<Post, Error>) -> Void) {
-        let endpoint = PostsEndpoint.fetchPost(id: id)
-        request(endpoint, completion: completion)
     }
 }
